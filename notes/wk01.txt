@@ -1,0 +1,41 @@
+Digital output
+
+GPIO: General Purpose Input/Output
+
+AVR128DB48: 8-bit microcontroller
+* 128kb flask, DB family, 48 pins, 
+
+Pins grouped by A (8), B (6), C (8), D (8), E (4), F (7)
+
+Parens mean the pin can be an analog/digital pin or external clock (optional more accurate clock)
+* internal vs external crystal oscillator
+
+3 GND (-) and VDD (+): need 3
+
+DAC: digital to analog converter
+
+AVR architecture
+* program counter
+* instruction register
+* register file
+* data memory
+* ALU
+* stack pointer
+
+initialization: register settings for peripherals
+
+each port has 3 hardware registers
+* DIR: input (0) or output (1)
+* OUT: voltage, high (1) or low (0)
+* IN: reading voltage
+* PORTA controls 8 pins, PA_DIR has 8 bits
+
+write registers by writing to pointer address
+
+PIN5_bm: bitmask for PIN5
+PIN5_bp: bit position for PIN5
+
+virtual ports are single-cycle i/o registers, 1 cycle access vs 2-cycle normal registers
+
+source code -preprocessor-> -compiler-> assembly -assembler-> object code -linker-> executable
+
