@@ -1,0 +1,24 @@
+# Digital Input
+
+naive button circuit
+* button not pressed: circuit is open, read input low
+* button pressed: circuit closed, read input high
+
+pull-up
+* button not pressed: vcc connected to pin, read input high
+* button pressed: vcc connected to ground, read input low
+* requires pull-up resistor
+
+PULLUPEN: pull-up enable bit 3 of PIN2CTRL
+* internal pull-up resistor, no need for external
+
+reading a logic value
+* 8-bit (char) register PORTB.IN has logic values for all pins
+* bitmask PORTB.IN & PIN7_bm, selects pin 7 logic value
+* recall: pull-up, so 1 means button is not pressed, 0 means button is pressed
+
+mechanical switch bounce
+* voltage high/low very fast, signal bounces before stabilizing
+* debouncing: flag to check if button is being pressed (don't re-register button click if flag is true)
+* hardware debouncing: low-pass filter (filters out high freq noise)
+
