@@ -1,0 +1,27 @@
+# External interrupt
+process running, interrupt + bookmark + handle, process continues
+
+polling: foreground delay
+interrupt: ISR (Interrupt Service Routine), automatically handles interrupts
+
+enabling interrupt:
+* Bit 7: Global Interrupt Enable
+
+interrupt vector table
+* vector numbers for priorities (0 highest priority)
+
+Input Sense Configuration (ISC)
+* interrupt on rising/falling edge
+* PORT_ISC
+
+<avr/interrupt.h>
+volatile: keep variable in memory
+
+csi(): disable global interrupt
+sei(): enable global interrupt
+
+
+questions
+* volatile?
+* what is ISR?
+* command review
