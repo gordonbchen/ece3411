@@ -1,27 +1,31 @@
 # External interrupt
-process running, interrupt + bookmark + handle, process continues
+interrupt for new sensor data (do something when button is pressed)
 
-polling: foreground delay
-interrupt: ISR (Interrupt Service Routine), automatically handles interrupts
+polling: check sensor in foreground
+interrupt: ISR (Interrupt Service Routine)
+* microcontroller senses ISR call condition (button is pressed)
+* leaves main loop, executes ISR, rejoins main loop
 
-enabling interrupt:
-* Bit 7: Global Interrupt Enable
+master interrupt bit: sei() to enable global interrupt, cli() to disable
 
 interrupt vector table
-* vector numbers for priorities (0 highest priority)
+* stores jump instruction to ISR function
+* numbered by priority (0 highest priority)
 
-Input Sense Configuration (ISC)
-* interrupt on rising/falling edge
-* PORT_ISC
+set pin to input: PORTB.DIRCLR = PIN2_bm
+enable pull-up resistor for button: PORTB.PIN2CTRL |= PORT_PULLUPEN_bm
+set ISC (Input Sense Configuration) bits: PORTB.PIN2CTRL |= PORT_ISC_FALLING_gc
+* interrupt on falling sensor value b/c pullup button click = 1 -> 0
+* options to interrupt on sensor signal rising, rising or falling, etc
+enable global interrupts: sei()
 
-<avr/interrupt.h>
-volatile: keep variable in memory
+ISR(PORTB_PORT_vect)
+* check which pin the interrupt came from: PORTB_INTFLAGS & PIN2_bm
+* handle ISR
+* clear interrupt flag: PORTB_INTFLAGS = PIN2_bm
+* ISR is a macro
 
-csi(): disable global interrupt
-sei(): enable global interrupt
+volatile: tells compiler not to optimize reads/writes b/c value can change from interrupts
+* anything changed in ISR should be volatile
 
-
-questions
-* volatile?
-* what is ISR?
-* command review
+interrupts can cause race conditions: wrap statements in cli() and sei() if necessary
