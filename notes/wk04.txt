@@ -1,0 +1,51 @@
+# USART (Universal Synchronous & Asynchronous Receiver & Transmitter)
+serial communication
+
+UART defines protocol, physical implementation defined by RS-232 / RS485
+RS-232
+* logic levels inverted compared to UART (logic 1 = low voltage, logic 0 = high voltage)
+* point to point: 1 transmitter and 1 receiver
+* full duplex: send and receive at the same time
+RS-485
+* differential signaling: twisted pair carries A and B signals, logic 1 = A < B, logic 0 = A > B
+* multi-drop: many devices on bus
+* half-duples: send or receive
+
+FTDI interface: microcontroller to USB (Universal Serial Bus) converter
+* microcontroller -UART TX/RX pins-> FTDI -USB-> computer
+* virtual COM port, computer's OS sees regular serial port
+
+frame format: start bit (low), 8 data bits, parity bit?, stop bit (high)
+* idle: always high
+* serial: send 1 bit at a time
+
+baud rate: bit/sec transmitted
+* each byte of data takes 10 bits to transmit
+* 9600 baud = 960 bytes/sec
+
+clock generator:
+* microcontroller system clock is much faster
+* UART has clock generator that gets baud clock from system clock
+* N (set in baud rate register) = f_sys / (f_baud * oversample)
+* oversampling reduces noise (samples many points in signal to see if high / low)
+* BAUD = (64 * f_sys) / (f_baud * oversample)  // 64 is from the 1/64 internal scaler, 1/64 is the resolution
+
+5 USARTS in AVR128DB48
+* USART3 uses PB0 for TX (transmitting), and PB1 (receiving)
+
+USARTn.BAUD: baud rate seting (not baud rate!), 16 bits (uint16_t)
+USARTn.CTRLA: for interrupts
+USARTn.CTRLB: enable RX (USART_RXEN_bm) and TX (USART_TXEN_bm)
+USARTn.CTRLC: frame format, USART_CHSIZE_8BIT_gc = 8 data, no parity, 1 stop bit
+USARTn.STATUS: RXCIF (character available in receive data register), DREIF (transmit data register empty)
+
+USARTn.RXDATA{L,H}  # received data register, use low
+USARTn.TXDATA{L,H}  # send data register, use low
+
+USART workflow:
+* set baurd rate
+* config in/out pins
+* enable transmitter and receiver
+* sendChar, sendStr
+* receiveChar
+
