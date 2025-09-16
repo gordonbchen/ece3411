@@ -13,9 +13,14 @@ void my_delay_ms(int ms) {
 }
 
 void init_clock() {
+    // Unlock protected io registers. Needed for next clock control.
     CPU_CCP = CCP_IOREG_gc;
-    CLKCTRL.XOSCHFCTRLA = CLKCTRL_FRQRANGE_16M_gc | CLKCTRL_ENABLE_bm;
+
+    // Enable external clock (16Mhz range).
+    CLKCTRL.XOSCHFCTRLA = CLKCTRL_FRQRANGE_16M_gc | CLKCTRL_ENABLE_bm;  
+
     CPU_CCP = CCP_IOREG_gc;
+    // Use external clock source.
     CLKCTRL.MCLKCTRLA = CLKCTRL_CLKSEL_EXTCLK_gc;
 }
 
