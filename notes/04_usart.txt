@@ -50,21 +50,21 @@ USART workflow:
 * receiveChar
 
 
-interrupts
+# Interrupts
 * interrupt controller hardware sends interrupt signal to CPU
 * CPU saves state (pushes PC and registers onto stack)
 * jumps to interrupt vector table (maps interrupt code -> jump instructions to ISR functions)
 * CPU exectures ISR, then goes back to normal execution
 
-# Enable interrupts on recieve complete and data register empty.
-USART3.CTRLA = USART_RXCIE_bm | USART_DREIE_bm;
-sei();
-ISR(USART3_DRE_vect) {}
+USART3.CTRLA = USART_RXCIE_bm;  // enable interrupt on USART3 recieve complete.
+sei();                          // enable global interrupts.
+ISR(USART3_RXC_vect) {}         // define ISR on USART receive complete.
 
-interrupt flag in USARTn.STATUS
+interrupt flag in USARTn.STATUS is set by hardware
+* RXCIF (receive complete) auto-clears on USARTn.RXDATAL read
+* DREIF (data register empty) auto-clear on USARTn.TXDATAL write
+* TXCIF (transmit complete) must be cleared by writing 1
 
-problems: nested interrupts
+keep ISRs short, otherwise interrupts get nested and are lost
 
-scanf is blocking, write ISR to receive and putchar
-
-volatile ring buffer
+ring buffer (useful data structure)
