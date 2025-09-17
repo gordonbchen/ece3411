@@ -49,3 +49,22 @@ USART workflow:
 * sendChar, sendStr
 * receiveChar
 
+
+interrupts
+* interrupt controller hardware sends interrupt signal to CPU
+* CPU saves state (pushes PC and registers onto stack)
+* jumps to interrupt vector table (maps interrupt code -> jump instructions to ISR functions)
+* CPU exectures ISR, then goes back to normal execution
+
+# Enable interrupts on recieve complete and data register empty.
+USART3.CTRLA = USART_RXCIE_bm | USART_DREIE_bm;
+sei();
+ISR(USART3_DRE_vect) {}
+
+interrupt flag in USARTn.STATUS
+
+problems: nested interrupts
+
+scanf is blocking, write ISR to receive and putchar
+
+volatile ring buffer
