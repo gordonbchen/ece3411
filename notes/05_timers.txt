@@ -1,5 +1,31 @@
 # Timers
-type A
-type B
-type C
+timer: counter register, increments with clock
 
+CNT: counter register, timer count
+TOP: max value before counter rolls over
+
+timer resolution: tick period = prescaler / clock freq
+* period = (prescaler / clock_freq) * (1 + PER)
+* PER (TOP) = ticks per period
+
+timer modes
+* normal: inc counter, overflows at max
+* compare match: interrupt when CNT = CMP (compare register value)
+
+ex: 16 MHz clock freq, 1ms tick
+* clock period w/ prescale: 1 / 16 MHz = 1/16 us
+* prescaler = 64: 1/16 us * 64 = 4 us
+* PER = 249: (1 + 249) * 4 us = 1000 us = 1 ms
+
+PER double buffering: copy buffered value to PER register at update point
+* safer, does't clobber PER in the middle of counting
+
+timer init:
+* use external clock
+* set normal mode
+* set PER
+* set prescaler and enable
+* enable overflow interrupt
+
+timer ISR:
+* remember to clear interrupt
