@@ -29,3 +29,22 @@ timer init:
 
 timer ISR:
 * remember to clear interrupt
+
+
+# Timer
+* volatile timers, isr decrements
+* initalize with stagger, all reset to same value in main loop
+* timer ISR, main loop executing functions
+
+
+# RTC (Real-Time Clock)
+* 16-bit counter, cpu-independent, internal or external oscillator
+* overflow or compare interrupt
+
+init:
+* set clock: RTC.CLKSEL
+* set overflow period: RTC.PER, check PERBUSY in RTC.STATUS cleared before writing
+* enable overflow interrupt: RTC.INTCTRL
+* enable RTC: RTC.CTRLA
+* enable global interrupts
+
