@@ -57,12 +57,6 @@ void* usart_init(uint8_t usartnum, uint32_t baud_rate)
     else {
         usart = NULL;
     }
-void init_clock() {
-    CPU_CCP = CCP_IOREG_gc;
-    CLKCTRL.XOSCHFCTRLA = CLKCTRL_FRQRANGE_16M_gc | CLKCTRL_ENABLE_bm;  
-    CPU_CCP = CCP_IOREG_gc;
-    CLKCTRL.MCLKCTRLA = CLKCTRL_CLKSEL_EXTCLK_gc;
-}
     usart->BAUD = (4 * F_CPU) / baud_rate;
     usart->CTRLB |= (USART_RXEN_bm | USART_TXEN_bm); /* tx/rx enable */
 
