@@ -72,6 +72,10 @@ int read_int_from_input_buffer(int max_digits, int* return_int) {
     int num;
     int idx = input_buffer_head;
     for (int i = 0; i < max_digits; ++i) {
+        if (idx == input_buffer_tail) {
+            break;
+        }
+
         num = input_buffer[idx] - '0';
         if ((num < 0) || (num > 9)) {
             break;
@@ -79,9 +83,6 @@ int read_int_from_input_buffer(int max_digits, int* return_int) {
         *return_int = (*return_int * 10) + num;
         read_success = 0;
 
-        if (idx == input_buffer_tail) {
-            break;
-        }
         idx = (idx + 1) % INPUT_BUFFER_MAXLEN;
     }
     return read_success;
@@ -107,7 +108,7 @@ int main() {
     while (1) {
         new_input = input_buffer_print_tail != input_buffer_tail;
         if (new_input) {
-            // This extra, seemingly unnecessary check on new_input fixes a race condition.
+            // This seemingly unnecessary check on new_input fixes a race condition.
             while (input_buffer_print_tail != input_buffer_tail) {
                 if (input_buffer[input_buffer_print_tail] == '\r') {
                     putchar('\n');
@@ -129,20 +130,16 @@ int main() {
                     asking_freq_or_n_pins = 0;
                 }
             }
-            else if (asking_freq) {
-                if (read_int_from_input_buffer(2, &user_ans) == 0) {
-                    if (user_ans != 0) {
-                        freq_hz = user_ans;
-                        asking_freq_or_n_pins = 1;
-                    }
+            else if (asking_freq && (read_int_from_input_buffer(2, &user_ans) == 0)) {
+                if (user_ans != 0) {
+                    freq_hz = user_ans;
+                    asking_freq_or_n_pins = 1;
                 }
             }
-            else {
-                if (read_int_from_input_buffer(1, &user_ans) == 0) {
-                    if ((user_ans > 0) && (user_ans <= 8)) {
-                        n_pins = user_ans;
-                        asking_freq_or_n_pins = 1;
-                    }
+            else if (read_int_from_input_buffer(1, &user_ans) == 0) {
+                if ((user_ans > 0) && (user_ans <= 8)) {
+                    n_pins = user_ans;
+                    asking_freq_or_n_pins = 1;
                 }
             }
             input_buffer_head = input_buffer_tail;
