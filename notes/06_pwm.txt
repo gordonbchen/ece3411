@@ -1,0 +1,15 @@
+# PWM (Pulse Width Modulation)
+* digital PWM signal mimics analog
+* duty_cycle = on_time / period -> effective_voltage
+
+* pulse width: period * duty_cycle
+* smallest period with n bit resolution = 2^n / clock_freq
+
+duty_cycle = (1 + CMPn) / (1 + PER)
+freq = prescaler * (1 + PER) / F_CPU
+
+Slope modes
+* single slope: higher PWM freq (power converter)
+* dual slope: symmetric waveform, less EMI
+
+PORTMUX to route TCA0 output to desired port
