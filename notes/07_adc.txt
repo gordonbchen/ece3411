@@ -1,0 +1,56 @@
+# ADC (Analog to Digital Converter)
+continuous analog signal --sampling + quantization--> discrete digital signal
+
+bit weight = smallest voltage change
+* 10 bit ADC w/ V_ref = 5 V
+* LSB = 5 V / 2^10 = 4.88 mV
+
+full scale = max voltage output
+* FS = LSB * (2^10 - 1) = V_ref - LSB = 4.995 V
+
+quantization error
+* +- LSB/2 = += 2.44 mV
+
+Nyquist Sampling Theorem: sample freq >= 2 * input freq
+
+Flash ADC
+* 2^N - 1 comparators, each outputs 1 if V_in > V_ref else 0
+* thermometer code -> digital value
+* parallel + fast, but exponential hardware (expensive)
+
+Ramp ADC
+* 1 comparator, DAC, counter
+* increment counter until V_DAC(counter) > V_in -> counter = digital value
+* sequential, slow: exponential time, worst case 2^N - 1 comparisons
+* less hardware
+
+Successive Approximation
+* binary search: MSB->LSB: compare V_in > V_DAC
+* V_in > V_DAC -> bit = 1, else bit = 0
+* O(N) comparisons, 1 comparator
+
+conversion clock cycles
+* normal: 2 (per) startup + 2 (adc) sampling + 13.5 (adc) conversion + 2 (per) formatting
+* accumulated (mean): 2 (per) startup + n(2 (adc) sampling + 13.5 (adc) conversion + 2 (per) formatting))
+
+T_CLK_ADC: ADC clock period
+
+CTRLA: ENABLE, RESSEL (select resolution)
+CTRLB: SAMPNUM (sample acumulation number)
+CTRLC: PRESC (clock prescaler)
+* CLK_ADC b/t 125kHz and 2MHz
+* prescaler from CLK_PER (peripheral clock) to CLK_ADC
+* prescaler = 16: 16MHz / 16 = 1MHz
+* binary search time = (2 + 13.5)/1 Mhz + 4/16MHz = 15.75 ms
+CTRLD: INITDLY (init delay), ensure adc components ready
+
+MUXPOS: which analog input connected to ADC+?
+MUXNEG
+
+ADCn.RES (16 bits)
+* LEFTADJ = 1 -> MSB-aligned, otherwise LSB aligned
+* LSB aligned: conversion[0] at RES[0]
+
+VREF.ADC0REF (ADC voltage reference)
+* REFSEL
+
