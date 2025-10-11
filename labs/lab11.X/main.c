@@ -2,7 +2,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include "uart.h"
 
 void init_clock() {
@@ -21,7 +21,7 @@ void init_timer() {
     TCA0.SINGLE.INTCTRL = TCA_SINGLE_OVF_bm;
 }
 
-#define TIMER_MS 1000
+#define TIMER_MS 50
 volatile int timer = 0;
 
 ISR(TCA0_OVF_vect) {
@@ -42,10 +42,9 @@ void init_adc() {
 
 float get_voltage() {
     while (ADC0.COMMAND & ADC_STCONV_bm);  // wait until conversion done.
-
-    int Ain = ADC0.RES;
     // (Ain / max 12-bit value) * 3.3V
-    float voltage = ((float) Ain / 4096.0) * 3.3;
+    float voltage = ((float) ADC0.RES / 4096.0) * 3.3;
+    ADC0.COMMAND = ADC_STCONV_bm;  // start next conversion.
     return voltage;
 }
 
@@ -54,15 +53,17 @@ int main() {
     uart_init(3, 9600, NULL);
     init_timer();
     init_adc();
+    sei();
 
     float voltage;
-    char vbuf[16];
+//    char vbuf[16];
     while (1) {
         if (timer == TIMER_MS) {
             timer = 0;
             voltage = get_voltage();
-            dtostrf(voltage, 4, 2, vbuf);  // min 4 chars, 2 decimals.
-            printf("%s\n", vbuf);
+//            dtostrf(voltage, 4, 2, vbuf);  // min 4 chars, 2 decimals.
+//            printf("%s\n", vbuf);
+            printf("%d.%d%d\n", (int)voltage, (int) (voltage / 0.1) % 10, (int) (voltage / 0.01) % 10);
         }
     }
 };
