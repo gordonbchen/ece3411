@@ -1,0 +1,7 @@
+# EEPROM (Electrically Erasable Programmable ROM)
+non-volatile: persists after power cycle
+
+AVR128DB48 has 512B of EEPROM
+
+EEPROM: 70 us write, 10 ms clear
+RAM: 62.5 ns
