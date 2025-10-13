@@ -21,7 +21,7 @@ void init_timer() {
     TCA0.SINGLE.INTCTRL = TCA_SINGLE_OVF_bm;
 }
 
-#define TIMER_MS 50
+#define TIMER_MS 1000
 volatile int timer = 0;
 
 ISR(TCA0_OVF_vect) {
