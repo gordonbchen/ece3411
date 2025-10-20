@@ -1,76 +1,101 @@
+#define F_CPU 16000000UL
 #include <avr/io.h>
-#include <avr/cpufunc.h>
-#include "src/rtc.h"
-#include "src/adc.h"
-#include "src/dac.h"
-#include "src/uart.h"
+#include <stdio.h>
+#include <util/delay.h>
+#include "uart.h"
 
-void clock_init(void);
-void GPIO_init(void);
-void OPAMP0_init(void);
+// ------------ OPAMP INIT -------------
+void OPAMP_init(void) {
+    OPAMP.TIMEBASE = ceil(F_CPU / 1e6) - 1;
 
-int main(void) {
-    clock_init();
-    GPIO_init();
-    LED0_init();
-    RTC_init(); /*1s interrupt timer*/
-    USART_init(); /*Streams data into Data Visualizer*/
-
-    DAC0_init(); /*Creates and outputs the sine waveform*/
-    ADC0_init(); /*Acquire Signal from OPAMP0 output*/
-
-    /*Start the timer controlling the sine waveform generator
-    and the timer controlling the acquisition*/
-    DAC0_SineWaveTimer_enable();
-    ADC0_SampleTimer_enable();
-
-    OPAMP0_init();
-
-    RTC_enable();
-
-    sei(); /*Enable global interrupts*/
-
-    while (1) {}
-}
-
-#define OPAMP_TIMEBASE_US (ceil(F_CPU / 1e6) - 1)
-#define OPAMP_MAX_SETTLE (0x7F)
-
-void OPAMP0_init(void) {
-    /* Configure the Timebase */
-    OPAMP.TIMEBASE = OPAMP_TIMEBASE_US;
-
-    /* Configure the Op Amp n Control A */
     OPAMP.OP0CTRLA = OPAMP_OP0CTRLA_OUTMODE_NORMAL_gc | OPAMP_ALWAYSON_bm;
+    OPAMP.OP1CTRLA = OPAMP_OP1CTRLA_OUTMODE_NORMAL_gc | OPAMP_ALWAYSON_bm;
+    OPAMP.OP2CTRLA = OPAMP_OP2CTRLA_OUTMODE_NORMAL_gc | OPAMP_ALWAYSON_bm;
 
-    /* Configure the Op Amp n Input Multiplexer */
-    OPAMP.OP0INMUX = OPAMP_OP0INMUX_MUXNEG_OUT_gc | OPAMP_OP0INMUX_MUXPOS_DAC_gc;
+    OPAMP.OP0INMUX = OPAMP_OP0INMUX_MUXPOS_INP_gc | OPAMP_OP0INMUX_MUXNEG_OUT_gc;
+    OPAMP.OP0RESMUX = OPAMP_OP0RESMUX_MUXBOT_GND_gc |
+                      OPAMP_OP0RESMUX_MUXWIP_WIP3_gc |
+                      OPAMP_OP0RESMUX_MUXTOP_OUT_gc;
 
-    /* Configure the Op Amp n Resistor Wiper Multiplexer */
-    OPAMP.OP0RESMUX = OPAMP_OP0RESMUX_MUXBOT_OFF_gc |
-                      OPAMP_OP0RESMUX_MUXWIP_WIP0_gc |
-                      OPAMP_OP0RESMUX_MUXTOP_OFF_gc;
+    OPAMP.OP1INMUX = OPAMP_OP1INMUX_MUXPOS_INP_gc | OPAMP_OP1INMUX_MUXNEG_OUT_gc;
+    OPAMP.OP1RESMUX = OPAMP_OP1RESMUX_MUXBOT_OFF_gc |
+                      OPAMP_OP1RESMUX_MUXWIP_WIP0_gc |
+                      OPAMP_OP1RESMUX_MUXTOP_OFF_gc;
 
-    /* Configure the Op Amp n Settle Time*/
-    OPAMP.OP0SETTLE = OPAMP_MAX_SETTLE;
+    OPAMP.OP2INMUX = OPAMP_OP2INMUX_MUXPOS_LINKOUT_gc | OPAMP_OP2INMUX_MUXNEG_WIP_gc;
+    OPAMP.OP2RESMUX = OPAMP_OP2RESMUX_MUXBOT_LINKOUT_gc |
+                      OPAMP_OP2RESMUX_MUXWIP_WIP3_gc |
+                      OPAMP_OP2RESMUX_MUXTOP_OUT_gc;
 
-    /* Enable OPAMP peripheral */
+    // Settling time.
+    OPAMP.OP0SETTLE = 0x7F;
+    OPAMP.OP1SETTLE = 0x7F;
+    OPAMP.OP2SETTLE = 0x7F;
+
+    // Enable OPAMP.
     OPAMP.CTRLA = OPAMP_ENABLE_bm;
 
-    /* Wait for the operational amplifiers to settle */
-    while (!(OPAMP.OP0STATUS & OPAMP_SETTLED_bm)) {}
-}
+    // Wait for op ams to settle.
+    while (!(OPAMP.OP0STATUS & OPAMP_SETTLED_bm));
+    while (!(OPAMP.OP1STATUS & OPAMP_SETTLED_bm));
+    while (!(OPAMP.OP2STATUS & OPAMP_SETTLED_bm));
 
-void GPIO_init(void) {
-    /* Disable digital input buffer*/
+    // Disable interrupts for opamp.
+    // OP0.
     PORTD.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
     PORTD.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    // OP1.
+    PORTD.PIN4CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTD.PIN7CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    // OP2.
+    PORTE.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTE.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
 }
 
-void clock_init() {
+// ------------ ADC INIT -------------
+void ADC_init(void) {
+    VREF.ADC0REF = VREF_REFSEL_VDD_gc; // Use VDD (3.3 V) as ref.
+    ADC0.CTRLC = ADC_PRESC_DIV4_gc;
+    ADC0.CTRLA = ADC_ENABLE_bm;
+    ADC0.MUXPOS = ADC_MUXPOS_AIN9_gc; // OPAMP2 output at AIN9.
+    ADC0.COMMAND = ADC_STCONV_bm;
+}
+
+uint16_t ADC_read(void) {
+    while (ADC0.COMMAND & ADC_STCONV_bm);
+    ADC0.COMMAND = ADC_STCONV_bm;
+    return ADC0.RES;
+}
+
+// ------------ CURRENT CALC -------------
+float read_current(void) {
+    float adc_val = (float) ADC_read();
+    float v_measured = (adc_val * 3.3) / 4096.0;  // 12-bit ADC.
+    float v_shunt = v_measured / 1.0;             // remove amplifier gain, gain = 1.0.
+    return v_shunt / 0.1;                         // I = V/R, 0.1-ohm shunt resistor.
+}
+
+// ------------ CLOCK INIT -------------
+void CLK_init(void) {
     CPU_CCP = CCP_IOREG_gc;
     CLKCTRL.XOSCHFCTRLA = CLKCTRL_FRQRANGE_16M_gc | CLKCTRL_ENABLE_bm;
     CPU_CCP = CCP_IOREG_gc;
     CLKCTRL.MCLKCTRLA = CLKCTRL_CLKSEL_EXTCLK_gc;
     _delay_ms(100);
 }
+
+// ------------ MAIN LOOP -------------
+int main(void) {
+    CLK_init();
+    OPAMP_init();
+    ADC_init();
+    uart_init(3, 9600, NULL);
+
+    float current;
+    while (1) {
+        current = read_current();
+        printf("Current: %.3f A\n", current);
+        _delay_ms(500);
+    }
+}
+

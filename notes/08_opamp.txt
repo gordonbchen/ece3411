@@ -1,0 +1,13 @@
+# Op Amp
+
+V_out = A * (V_+ - V_-)
+
+V_+ > V_- -> V_out high
+V_+ < V_- -> V_out low
+
+
+voltage follower: V_+ = V_in, V_- = V_out
+* V_+ > V_- -> V_out high -> V_- high until V_- = V_+ -> voltage following
+* autonomous ODE, dV_out / dt = V_in - V_out
+* V_out follows V_in
+
