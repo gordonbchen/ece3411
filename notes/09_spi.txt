@@ -1,0 +1,18 @@
+# SPI: Serial Peripheral Interface
+* communication w/ external devices
+* 4 pins, host (microcontroller) and client (sensor)
+    * SCLK: serial clock (from host)
+    * MOSI (master out slave in): host signal
+    * MISO (master in slave out): client signal
+    * SS: client select
+* 1 host to many clients, share SCLK, MOSI, MISO, SS different
+* host sends MOSI to receive MISO
+
+modes: synchronization
+normal (byte by byte, slower, more interrupts) vs buffer mode (buffered, faster, less interrupts)
+
+MCP 4131: digital potentiometer
+* 8-pin digital pot
+* 7-bit resolution
+* 50kOhm max resistance
+
