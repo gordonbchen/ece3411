@@ -31,6 +31,11 @@ void OPAMP_init(void) {
     OPAMP.OP0SETTLE = 0x7F;
     OPAMP.OP1SETTLE = 0x7F;
     OPAMP.OP2SETTLE = 0x7F;
+    
+    // Disable interrupts for opamp.
+    // OP0.
+    PORTD.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc
+;    PORTD.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
 
     // Enable OPAMP.
     OPAMP.CTRLA = OPAMP_ENABLE_bm;
@@ -39,38 +44,30 @@ void OPAMP_init(void) {
     while (!(OPAMP.OP0STATUS & OPAMP_SETTLED_bm));
     while (!(OPAMP.OP1STATUS & OPAMP_SETTLED_bm));
     while (!(OPAMP.OP2STATUS & OPAMP_SETTLED_bm));
-
-    // Disable interrupts for opamp.
-    // OP0.
-    PORTD.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
-    PORTD.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
-    // OP1.
-    PORTD.PIN4CTRL = PORT_ISC_INPUT_DISABLE_gc;
-    PORTD.PIN7CTRL = PORT_ISC_INPUT_DISABLE_gc;
-    // OP2.
-    PORTE.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
-    PORTE.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
 }
 
 // ------------ ADC INIT -------------
 void ADC_init(void) {
-    VREF.ADC0REF = VREF_REFSEL_VDD_gc; // Use VDD (3.3 V) as ref.
-    ADC0.CTRLC = ADC_PRESC_DIV4_gc;
-    ADC0.CTRLA = ADC_ENABLE_bm;
     ADC0.MUXPOS = ADC_MUXPOS_AIN9_gc; // OPAMP2 output at AIN9.
+    VREF.ADC0REF = VREF_REFSEL_VDD_gc; // Use VDD (3.3 V) as ref.
+    ADC0.CTRLC = ADC_PRESC_DIV16_gc;
+    ADC0.CTRLA = ADC_ENABLE_bm;
     ADC0.COMMAND = ADC_STCONV_bm;
 }
 
 uint16_t ADC_read(void) {
     while (ADC0.COMMAND & ADC_STCONV_bm);
+    uint16_t adc_val = ADC0.RES;
     ADC0.COMMAND = ADC_STCONV_bm;
-    return ADC0.RES;
+    return adc_val;
 }
 
 // ------------ CURRENT CALC -------------
 float read_current(void) {
     float adc_val = (float) ADC_read();
-    float v_measured = (adc_val * 3.3) / 4096.0;  // 12-bit ADC.
+    printf("adc_val: %.3f\n", adc_val);
+    float v_measured = (adc_val / 4096.0) * 3.3;  // 12-bit ADC.
+    printf("v_measured: %.3f\n", v_measured);
     float v_shunt = v_measured / 1.0;             // remove amplifier gain, gain = 1.0.
     return v_shunt / 0.1;                         // I = V/R, 0.1-ohm shunt resistor.
 }
@@ -94,7 +91,7 @@ int main(void) {
     float current;
     while (1) {
         current = read_current();
-        printf("Current: %.3f A\n", current);
+        printf("Current: %.3f A\n\n", current);
         _delay_ms(500);
     }
 }
