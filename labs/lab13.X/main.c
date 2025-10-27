@@ -22,7 +22,7 @@ void OPAMP_init(void) {
                       OPAMP_OP1RESMUX_MUXWIP_WIP0_gc |
                       OPAMP_OP1RESMUX_MUXTOP_OFF_gc;
 
-    OPAMP.OP2INMUX = OPAMP_OP2INMUX_MUXPOS_LINKOUT_gc | OPAMP_OP2INMUX_MUXNEG_WIP_gc;
+    OPAMP.OP2INMUX = OPAMP_OP2INMUX_MUXPOS_LINKWIP_gc | OPAMP_OP2INMUX_MUXNEG_WIP_gc;
     OPAMP.OP2RESMUX = OPAMP_OP2RESMUX_MUXBOT_LINKOUT_gc |
                       OPAMP_OP2RESMUX_MUXWIP_WIP3_gc |
                       OPAMP_OP2RESMUX_MUXTOP_OUT_gc;
@@ -48,7 +48,7 @@ void OPAMP_init(void) {
 
 // ------------ ADC INIT -------------
 void ADC_init(void) {
-    ADC0.MUXPOS = ADC_MUXPOS_AIN9_gc; // OPAMP2 output at AIN9.
+    ADC0.MUXPOS = ADC_MUXPOS_AIN10_gc; // OPAMP2 output at AIN9.
     VREF.ADC0REF = VREF_REFSEL_VDD_gc; // Use VDD (3.3 V) as ref.
     ADC0.CTRLC = ADC_PRESC_DIV16_gc;
     ADC0.CTRLA = ADC_ENABLE_bm;
@@ -68,8 +68,8 @@ float read_current(void) {
     printf("adc_val: %.3f\n", adc_val);
     float v_measured = (adc_val / 4096.0) * 3.3;  // 12-bit ADC.
     printf("v_measured: %.3f\n", v_measured);
-    float v_shunt = v_measured / 1.0;             // remove amplifier gain, gain = 1.0.
-    return v_shunt / 0.1;                         // I = V/R, 0.1-ohm shunt resistor.
+    float v_shunt = v_measured;             // remove amplifier gain, gain = 1.0.
+    return v_shunt / 330.0;                         // I = V/R, 0.1-ohm shunt resistor.
 }
 
 // ------------ CLOCK INIT -------------
