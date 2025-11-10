@@ -1,0 +1,21 @@
+I2C (Inter Integrated Circuit) / TWI (Two Wire Serial Interface)
+* 7 bit addr: 128 devices
+
+data lines are high in idle (pullup)
+* pull down is faster
+
+BAUD = (F_CLK_PER / (2 * F_SCL)) - (5 + (F_CLK_PER * T_R / 2))
+
+Read:
+* transmit addr (WR)
+* transmit command/register
+* transmit addr (RD)
+* receive data
+* stop
+
+Write:
+* write addr
+* transmit addr (WR)
+* transmit command/register
+* transmit data
+* stop

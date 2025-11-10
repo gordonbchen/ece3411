@@ -16,3 +16,7 @@ MCP 4131: digital potentiometer
 * 7-bit resolution
 * 50kOhm max resistance
 
+16-bit command
+* 4 addr (addr of register on MCP4131)
+* 2 command (00 write, 11 read)
+* 10 data (wiper setting)
