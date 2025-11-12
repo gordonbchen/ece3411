@@ -7,4 +7,4 @@ Makefile
 _build/
 cmake/
 .vscode/
-**/*.X/out/
+out/
