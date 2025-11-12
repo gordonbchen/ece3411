@@ -9,4 +9,6 @@ void clock_init();
 void ADC_init();
 float read_voltage_adc();
 
+int calc_per(int freq_hz, int div);
+
 #endif

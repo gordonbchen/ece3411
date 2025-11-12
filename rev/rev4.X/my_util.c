@@ -24,3 +24,11 @@ float read_voltage_adc() {
     ADC0.COMMAND = ADC_STCONV_bm; // start next conversion.
     return voltage;
 }
+
+int calc_per(int freq_hz, int div) {
+    // period = prescaler * (1 + PER) / F_CPU
+    // PER = (period * F_CPU / prescaler) - 1
+    // Ex: PWM freq of 1000Hz, period = 1ms.
+    //     PER = (1/1000 * 16000000 / 64) - 1 = 16000 / 64 - 1 = 250 - 1 = 249.
+    return ((F_CPU / freq_hz) / div) - 1;
+}
