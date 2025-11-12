@@ -4,4 +4,7 @@ dist/
 .generated_files/
 nbproject/
 Makefile
-
+_build/
+cmake/
+.vscode/
+**/*.X/out/
