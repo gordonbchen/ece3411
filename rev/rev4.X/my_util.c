@@ -16,7 +16,7 @@ void ADC_init() {
     ADC0.COMMAND = ADC_STCONV_bm;      // start AD conversion.
 }
 
-float get_voltage() {
+float read_voltage_adc() {
     while (ADC0.COMMAND & ADC_STCONV_bm);
     // wait until conversion done.
     // (Ain / max 12-bit value) * 3.3V

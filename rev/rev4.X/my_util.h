@@ -7,6 +7,6 @@
 void clock_init();
 
 void ADC_init();
-float get_voltage();
+float read_voltage_adc();
 
 #endif
