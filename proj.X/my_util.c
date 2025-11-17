@@ -1,0 +1,8 @@
+#include "my_util.h"
+
+void clock_init() {
+    CPU_CCP = CCP_IOREG_gc;
+    CLKCTRL.XOSCHFCTRLA = CLKCTRL_FRQRANGE_16M_gc | CLKCTRL_ENABLE_bm;
+    CPU_CCP = CCP_IOREG_gc;
+    CLKCTRL.MCLKCTRLA = CLKCTRL_CLKSEL_EXTCLK_gc;
+}
