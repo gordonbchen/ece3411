@@ -52,13 +52,27 @@ void SPI_init() {
     SPI0.CTRLA = SPI_ENABLE_bm | SPI_MASTER_bm | SPI_PRESC_DIV128_gc;
     
     // Enable SS pin control.
-    SPI0.CTRLB = SPI_SSD_bm;
+    SPI0.CTRLB = SPI_SSD_bm | SPI_DREIE_bm;
 }
 
+#define SPI_BUF_MAXLEN 256
+volatile uint8_t spi_buf[SPI_BUF_MAXLEN];
+volatile int spi_buf_head = 0;
+volatile int spi_buf_idx = 0;
 void SPI0_write(uint8_t data) {
-    SPI0.DATA = data;
-    // Block until transfer complete.
-    while (!(SPI0.INTFLAGS & SPI_IF_bm));
+    cli();
+    spi_buf[spi_buf_idx] = data;
+    spi_buf_idx = (spi_buf_idx + 1) % SPI_BUF_MAXLEN;
+    sei();
+}
+
+ISR(SPI0_INT_vect) {
+    if (spi_buf_idx == spi_buf_head) {
+        return;
+    }
+    SPI0.DATA = spi_buf[spi_buf_head];
+    spi_buf_head = (spi_buf_head + 1) % SPI_BUF_MAXLEN;
+    SPI0.INTFLAGS = SPI_DREIF_bm;
 }
 
 // MCP4131 Commands
