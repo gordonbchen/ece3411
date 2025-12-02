@@ -9,6 +9,27 @@ void clock_init() {
 }
 
 
+void DAC_init(DAC_t* dac) {
+    dac->CTRLA = DAC_ENABLE_bm | DAC_OUTEN_bm;
+    VREF.DAC0REF = VREF_REFSEL_VDD_gc;
+}
+
+void DAC_out(DAC_t* dac, float voltage) {
+    uint16_t x = (voltage / 3.3) * 1023;
+    // 10-bit DAC value. upper 8 in DATAH, lower 2 in DATAL[7:6].
+    dac->DATAH = (uint8_t) ((x >> 2) & 0xFF);
+    dac->DATAL = (uint8_t) ((x & 0x03) << 6);
+}
+
+float char_to_voltage(char c) {
+    if (c == 'w') { return 0.3; }
+    if (c == 'a') { return 0.9; }
+    if (c == 's') { return 2.1; }
+    if (c == 'd') { return 1.5; }
+    return 3.3;
+}
+
+
 void LIS3DH_init() {
     TWI_init(&TWI0);
 

@@ -6,6 +6,10 @@
 
 void clock_init();
 
+void DAC_init(DAC_t* dac);
+void DAC_out(DAC_t* dac, float voltage);
+float char_to_voltage(char c);
+
 
 typedef struct {
     int16_t x;
