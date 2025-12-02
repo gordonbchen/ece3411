@@ -30,6 +30,16 @@ float char_to_voltage(char c) {
 }
 
 
+// Func only support 1ms timer.
+void timer_init(TCA_t* timer) {
+    timer->SINGLE.CTRLB = TCA_SINGLE_WGMODE_NORMAL_gc;
+    // T = (PER + 1) * DIV / 16MHz = 250 * 64 / 16M = 1ms.
+    timer->SINGLE.PERBUF = 249;
+    timer->SINGLE.CTRLA = TCA_SINGLE_CLKSEL_DIV64_gc | TCA_SINGLE_ENABLE_bm;
+    timer->SINGLE.INTCTRL = TCA_SINGLE_OVF_bm;
+}
+
+
 void LIS3DH_init() {
     TWI_init(&TWI0);
 
