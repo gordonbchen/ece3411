@@ -22,4 +22,13 @@ typedef struct {
 void LIS3DH_init();
 void LIS3DH_read_xyz(Coord3D* coord);
 
+
+#define LED_COUNT 8
+
+void SPI1_init(void);
+void APA102_init(void);
+
+void APA102_set_all(uint8_t brightness, uint8_t r, uint8_t g, uint8_t b);
+void APA102_show(uint8_t ledCount, uint8_t (*leds)[4]);
+
 #endif

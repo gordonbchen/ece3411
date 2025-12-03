@@ -1,5 +1,6 @@
 #include "my_util.h"
 #include "i2c.h"
+#include <avr/io.h>
 
 void clock_init() {
     CPU_CCP = CCP_IOREG_gc;
@@ -63,4 +64,74 @@ void LIS3DH_read_xyz(Coord3D* coord) {
     coord->x = (int16_t)(xh << 8 | xl) >> 4;   // 12-bit right-aligned
     coord->y = (int16_t)(yh << 8 | yl) >> 4;
     coord->z = (int16_t)(zh << 8 | zl) >> 4;
+}
+
+
+void SPI1_write(uint8_t data) {
+    SPI1.DATA = data;
+    while (!(SPI1.INTFLAGS & SPI_IF_bm));
+}
+
+void SPI1_init(void) {
+    PORTMUX.SPIROUTEA = PORTMUX_SPI1_ALT1_gc; // PC4=MOSI, PC6=SCK
+    SPI1.CTRLA = SPI_ENABLE_bm | SPI_MASTER_bm | SPI_PRESC_DIV16_gc;
+    SPI1.CTRLB = 0;
+    PORTC.DIRSET = PIN4_bm | PIN6_bm;
+}
+
+void APA102_sendByte(uint8_t b) {
+    SPI1_write(b);
+}
+
+void APA102_startFrame(void) {
+    APA102_sendByte(0x00);
+    APA102_sendByte(0x00);
+    APA102_sendByte(0x00);
+    APA102_sendByte(0x00);
+}
+
+void APA102_endFrame(uint8_t ledCount) {
+    uint8_t n = (ledCount + 15) / 16;
+    for (uint8_t i = 0; i < n; i++)
+        APA102_sendByte(0xFF);
+}
+
+void APA102_sendLED(uint8_t brightness, uint8_t r, uint8_t g, uint8_t b) {
+    brightness &= 0x1F;
+    APA102_sendByte(0xE0 | brightness);
+    APA102_sendByte(b);
+    APA102_sendByte(g);
+    APA102_sendByte(r);
+}
+
+void APA102_show(uint8_t ledCount, uint8_t (*leds)[4]) {
+    APA102_startFrame();
+    for (uint8_t i = 0; i < ledCount; i++)
+        APA102_sendLED(leds[i][0], leds[i][1], leds[i][2], leds[i][3]);
+    APA102_endFrame(ledCount);
+}
+
+void APA102_init(void) {
+    SPI1_init();
+
+    // Clear LEDs on startup
+    uint8_t leds[LED_COUNT][4];
+    for (uint8_t i = 0; i < LED_COUNT; i++) {
+        leds[i][0] = 0;
+        leds[i][1] = 0;
+        leds[i][2] = 0;
+        leds[i][3] = 0;
+    }
+    APA102_show(LED_COUNT, leds);
+}
+
+void APA102_set_all(uint8_t brightness, uint8_t r, uint8_t g, uint8_t b) {
+    uint8_t leds[LED_COUNT][4];
+    for (uint8_t i = 0; i < LED_COUNT; i++) {
+        leds[i][0] = brightness;
+        leds[i][1] = r;
+        leds[i][2] = g;
+        leds[i][3] = b;
+    }
+    APA102_show(LED_COUNT, leds);
 }

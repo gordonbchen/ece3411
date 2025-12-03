@@ -7,10 +7,17 @@ void setup() {
   Serial.println("HELLO from setup!");
 }
 
-#define FORWARDV 0.6
-#define LEFTV 1.2
-#define RIGHTV 1.8
-#define BACKWARDV 2.4
+// 3V
+// #define FORWARDV 0.6
+// #define LEFTV 1.2
+// #define RIGHTV 1.8
+// #define BACKWARDV 2.4
+
+// 5V
+#define FORWARDV 0.9
+#define LEFTV 1.8
+#define RIGHTV 2.7
+#define BACKWARDV 3.6
 
 
 void loop() {
