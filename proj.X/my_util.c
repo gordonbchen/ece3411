@@ -15,6 +15,22 @@ void DAC_init(DAC_t* dac) {
     VREF.DAC0REF = VREF_REFSEL_VDD_gc;
 }
 
+// RTC init, set to roughly 100 ms.
+void RTC_init(void) {
+    // 1. Select internal 32.768kHz oscillator.
+    RTC.CLKSEL = RTC_CLKSEL_OSC32K_gc;
+
+    // 2. Set overflow period: 32768 ticks = 1 second.
+    RTC.PER = 32768 / 10;
+
+    // 3. Enable overflow interrupt.
+    RTC.INTCTRL = RTC_OVF_bm;
+
+    // 4. Enable RTC with no prescaler.
+    RTC.CTRLA = RTC_RTCEN_bm | RTC_PRESCALER_DIV1_gc;
+}
+
+// Output to DAC desired voltage so it can be read by micro.
 void DAC_out(DAC_t* dac, float voltage) {
     uint16_t x = (voltage / 3.3) * 1023;
     // 10-bit DAC value. upper 8 in DATAH, lower 2 in DATAL[7:6].
@@ -22,6 +38,7 @@ void DAC_out(DAC_t* dac, float voltage) {
     dac->DATAL = (uint8_t) ((x & 0x03) << 6);
 }
 
+// Used for better looking code, simply turning character command into desired voltage.
 float char_to_voltage(char c) {
     if (c == 'w') { return 0.3; }
     if (c == 'a') { return 0.9; }
@@ -40,7 +57,7 @@ void timer_init(TCA_t* timer) {
     timer->SINGLE.INTCTRL = TCA_SINGLE_OVF_bm;
 }
 
-
+// Inititalize the accelerometer.
 void LIS3DH_init() {
     TWI_init(&TWI0);
 
@@ -53,6 +70,7 @@ void LIS3DH_init() {
     TWI_write(&TWI0, LIS3DH_ADDR, 0x23, 0x08);
 }
 
+// Read the accelerometer, using our struct to store the results.
 void LIS3DH_read_xyz(Coord3D* coord) {
     uint8_t xl = TWI_read(&TWI0, LIS3DH_ADDR, 0x28 | 0x80); // auto-increment
     uint8_t xh = TWI_read(&TWI0, LIS3DH_ADDR, 0x29);
@@ -66,7 +84,7 @@ void LIS3DH_read_xyz(Coord3D* coord) {
     coord->z = (int16_t)(zh << 8 | zl) >> 4;
 }
 
-
+// Spi write function.
 void SPI1_write(uint8_t data) {
     SPI1.DATA = data;
     while (!(SPI1.INTFLAGS & SPI_IF_bm));
@@ -79,6 +97,7 @@ void SPI1_init(void) {
     PORTC.DIRSET = PIN4_bm | PIN6_bm;
 }
 
+// LED specific write function.
 void APA102_sendByte(uint8_t b) {
     SPI1_write(b);
 }
@@ -96,6 +115,7 @@ void APA102_endFrame(uint8_t ledCount) {
         APA102_sendByte(0xFF);
 }
 
+// Use other LED functions to instruct specific brightness and color.
 void APA102_sendLED(uint8_t brightness, uint8_t r, uint8_t g, uint8_t b) {
     brightness &= 0x1F;
     APA102_sendByte(0xE0 | brightness);
@@ -125,6 +145,7 @@ void APA102_init(void) {
     APA102_show(LED_COUNT, leds);
 }
 
+// Setting all LEDs based on total used (8).
 void APA102_set_all(uint8_t brightness, uint8_t r, uint8_t g, uint8_t b) {
     uint8_t leds[LED_COUNT][4];
     for (uint8_t i = 0; i < LED_COUNT; i++) {

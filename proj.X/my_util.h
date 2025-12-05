@@ -11,6 +11,7 @@ void DAC_out(DAC_t* dac, float voltage);
 float char_to_voltage(char c);
 
 void timer_init(TCA_t* timer);
+void RTC_init(void);
 
 typedef struct {
     int16_t x;
